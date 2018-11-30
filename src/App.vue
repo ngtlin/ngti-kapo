@@ -1,28 +1,52 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <GmapMap
+      :center="center"
+      :zoom="zoomLevel"
+      map-type-id="terrain"
+      :style="mapStyle"
+    >
+      <GmapMarker
+        :key="index"
+        v-for="(m, index) in markers"
+        :position="m.position"
+        :clickable="true"
+        :draggable="true"
+        @click="center=m.position"
+      />
+    </GmapMap>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
 
 export default {
   name: 'app',
   components: {
-    HelloWorld
+  },
+  data() {
+    return {
+      center: {lat:46.94809, lng:7.44744},
+      zoomLevel: 14,
+      markers: [
+        {
+          position: {lat:46.94809, lng:7.44744}
+        }
+      ],
+      
+    }
+  },
+  computed: {
+    mapStyle() {
+      return {
+        width: '600px',
+        height: '450px'
+      }
+    }
   }
 }
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+
 </style>
