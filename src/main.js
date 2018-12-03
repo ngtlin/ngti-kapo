@@ -9,7 +9,7 @@ Vue.use(VueGoogleMaps, {
   load: {
     //key: 'AIzaSyDQ4_1fpWUu558Qa1_EohhYLihGBEQbhtM',  //API Key Kapo project on Google Maps Platform
     key: 'AIzaSyDf43lPdwlF98RCBsJOFNKOkoEjkwxb5Sc',
-    libraries: 'places, visu', // This is required if you use the Autocomplete plugin
+    libraries: 'places, visualization', // This is required if you use the Autocomplete plugin
     // OR: libraries: 'places,drawing'
     // OR: libraries: 'places,drawing,visualization'
     // (as you require)

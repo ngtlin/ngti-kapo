@@ -6,34 +6,37 @@
       map-type-id="terrain"
       :style="mapStyle"
     >
-      <GmapMarker
+      <!--GmapMarker
         :key="index"
         v-for="(m, index) in markers"
         :position="m.position"
         :clickable="true"
         :draggable="true"
         @click="center=m.position"
-      />
+      /-->
+      <GmapKlmlayer :url="klmSrcUrl" />
     </GmapMap>
   </div>
 </template>
 
 <script>
+import GmapKlmlayer from './components/KmlLayer.js'
 
 export default {
   name: 'app',
   components: {
+    GmapKlmlayer,
   },
   data() {
     return {
-      center: {lat:46.94809, lng:7.44744},
-      zoomLevel: 14,
+      center: {lng:7.44744, lat:46.94809},
+      zoomLevel: 12,
       markers: [
         {
-          position: {lat:46.94809, lng:7.44744}
+          position: {lng:7.44744, lat:46.94809}
         }
       ],
-      
+      klmSrcUrl: "https://res.cloudinary.com/ngti/raw/upload/v1543844660/klmdata/placemark.kml"
     }
   },
   computed: {

@@ -1,9 +1,9 @@
-import * as VueGoogleMaps from 'vue2-google-maps'
+import { MapElementFactory } from 'vue2-google-maps'
 
 
-export default VueGoogleMaps.MapElementFactory({
+export default MapElementFactory({
   name: 'directionsRenderer',
-  ctr: () => VueGoogleMaps.google.maps.DirectionsRenderer,
+  ctr: () => window.google.maps.DirectionsRenderer,
   //// The following is optional, but necessary if the constructor takes multiple arguments
   //// e.g. for GroundOverlay
   // ctrArgs: (options, otherProps) => [options],
@@ -33,7 +33,7 @@ export default VueGoogleMaps.MapElementFactory({
   // Actions you want to perform before creating the object instance using the
   // provided constructor (for example, you can modify the `options` object).
   // If you return a promise, execution will suspend until the promise resolves
-  beforeCreate (options) {},
+  beforeCreate (/*options*/) {},
   // Actions to perform after creating the object instance.
-  afterCreate (directionsRendererInstance) {},
+  afterCreate (/*directionsRendererInstance*/) {},
 })
