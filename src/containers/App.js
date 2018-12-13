@@ -12,6 +12,8 @@ import heatmapData from '../data/heatmap';
 import zurichData from '../data/zurich-heatmap';
 import { renderLayers } from '../components/deckgl-layers';
 
+import KmlReader from '../utils/KmlReader';
+
 //import { connect } from 'react-redux';
 //import './App.css';
 console.log('-XXX->MapBox token=', process.env.MapboxAccessToken);
@@ -21,14 +23,14 @@ const MAPBOX_TOKEN = 'pk.eyJ1IjoidWJlcmRhdGEiLCJhIjoiY2o4OW90ZjNuMDV6eTMybzFzbmc
 const INITIAL_VIEW_STATE = {
   //longitude: -74, //New York
   //latitude: 40.7,
-  //longitude: 8.542551, //zurich
-  //latitude: 47.369972,
-  longitude: -4.519993, //London
-  latitude: 55.483792,
+  longitude: 8.542551, //zurich
+  latitude: 47.369972,
+  //longitude: -4.519993, //London
+  //latitude: 55.483792,
   zoom: 11,
   minZoom: 5,
   maxZoom: 16,
-  pitch: 30,
+  pitch: 40,
   bearing: 0
 };
 
@@ -55,6 +57,10 @@ class App extends Component {
     };
   }
 
+  // componentWillMount() {
+  //   KmlReader.parseKml("../data/zurich-doc.kml");
+  // }
+
   componentDidMount() {
     this._processData();
   }
@@ -77,9 +83,11 @@ class App extends Component {
       return accu;
     }, []);
     */
-   const points = heatmapData/*zurichData*/.reduce((accu, curr) => {
+   const points = /*heatmapData*/zurichData.reduce((accu, curr) => {
     accu.push({
       position: [Number(curr.longitude), Number(curr.latitude)],
+      counts: curr.counts,
+      color: this._converColorHex(curr.color),
      });
     return accu;
   }, []);
@@ -88,6 +96,17 @@ class App extends Component {
       points
     });
   };
+
+  _converColorHex = hex => {
+    hex = hex.replace('#','');
+    const r = parseInt(hex.substring(0,2), 16);
+    const g = parseInt(hex.substring(2,4), 16);
+    const b = parseInt(hex.substring(4,6), 16);
+    const a = parseInt(hex.substring(6,8), 16);
+
+    const result = [r,g,b,a];
+    return result;
+  }
 
   _onHover({ x, y, object }) {
     const label = object ? 

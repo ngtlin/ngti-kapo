@@ -26,6 +26,7 @@ const elevationRange = [0, 1000];
 export function renderLayers(props) {
   const { data, onHover, settings } = props;
   return [
+    /*
     settings.showScatterplot &&
       new ScatterplotLayer({
         id: 'scatterplot',
@@ -52,6 +53,18 @@ export function renderLayers(props) {
         opacity: 0.8,
         pickable: true,
         data,
+        onHover,
+        ...settings
+      })
+      */
+     settings.showHexagon &&
+      new HexagonCellLayer({
+        id: 'hexagon-cell-layer',
+        data,
+        getCentroid: d => d.position,
+        getElevation: d => d.counts * 3,
+        getColor: d => d.color,
+        angle: 0,
         onHover,
         ...settings
       })
