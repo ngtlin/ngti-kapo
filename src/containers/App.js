@@ -30,7 +30,7 @@ const INITIAL_VIEW_STATE = {
   zoom: 11,
   minZoom: 5,
   maxZoom: 16,
-  pitch: 40,
+  pitch: 30,
   bearing: 0
 };
 
@@ -87,7 +87,7 @@ class App extends Component {
     accu.push({
       position: [Number(curr.longitude), Number(curr.latitude)],
       counts: curr.counts,
-      color: this._converColorHex(curr.color),
+      //color: this._converColorHex(curr.color),
      });
     return accu;
   }, []);

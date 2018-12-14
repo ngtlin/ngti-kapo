@@ -23,6 +23,21 @@ const LIGHT_SETTINGS = {
 
 const elevationRange = [0, 1000];
 
+const getColor = counts => {
+  if (counts >= 1500) {
+    return [37, 52, 148, 255];
+  } else if (counts >= 1000) {
+    return   [44, 127, 184, 255];
+  } else if (counts >= 700) {
+    return [65, 182, 196, 255];
+  } else if (counts >= 400) {
+    return [127, 205, 187, 255];
+  } else if (counts >= 200) {
+    return [199, 233, 180, 255];
+  }
+  return [255, 255, 204, 255];
+};
+
 export function renderLayers(props) {
   const { data, onHover, settings } = props;
   return [
@@ -63,7 +78,7 @@ export function renderLayers(props) {
         data,
         getCentroid: d => d.position,
         getElevation: d => d.counts * 3,
-        getColor: d => d.color,
+        getColor: d => getColor(d.counts * 3),
         angle: 0,
         onHover,
         ...settings

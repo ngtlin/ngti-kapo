@@ -10,10 +10,10 @@ export const HEXAGON_CONTROLS = {
   radius: {
     displayName: 'Hexagon Radius',
     type: 'range',
-    value: 100,
+    value: 80,
     step: 50,
     min: 50,
-    max: 1000
+    max: 500
   },
   coverage: {
     displayName: 'Hexagon Coverage',
@@ -23,6 +23,7 @@ export const HEXAGON_CONTROLS = {
     min: 0,
     max: 1
   },
+  /*
   upperPercentile: {
     displayName: 'Hexagon Upper Percentile',
     type: 'range',
@@ -43,7 +44,7 @@ export const HEXAGON_CONTROLS = {
     step: 5,
     min: 1,
     max: 200
-  }
+  }*/
 };
 
 export const SCATTERPLOT_CONTROLS = {
