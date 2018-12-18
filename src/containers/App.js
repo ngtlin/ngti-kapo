@@ -1,20 +1,16 @@
 import React, {Component} from 'react';
-import {StaticMap, NavigationControl} from 'react-map-gl';
+import {StaticMap} from 'react-map-gl';
 import DeckGL from 'deck.gl';
 //import {MapboxLayer} from '@deck.gl/mapbox';
-import omnivore from 'leaflet-omnivore';
+import omnivore from '@mapbox/leaflet-omnivore';
 import {
   LayerControls,
   MapStylePicker,
   HEXAGON_CONTROLS
 } from '../components/controls';
 import { tooltipStyle } from '../components/style';
-import taxiData from '../data/taxi';
-import heatmapData from '../data/heatmap';
 import zurichData from '../data/zurich-heatmap';
 import { renderLayers } from '../components/deckgl-layers';
-
-import KmlReader from '../utils/KmlReader';
 
 //import { connect } from 'react-redux';
 //import './App.css';
@@ -77,23 +73,6 @@ class App extends Component {
   }
 
   _processData = () => {
-    /*
-    const points = taxiData.reduce((accu, curr) => {
-      accu.push({
-        position: [Number(curr.pickup_longitude), Number(curr.pickup_latitude)],
-        pickup: true
-      });
-
-      accu.push({
-        position: [
-          Number(curr.dropoff_longitude),
-          Number(curr.dropoff_latitude)
-        ],
-        pickup: false
-      });
-      return accu;
-    }, []);
-    */
    const points = /*heatmapData*/zurichData.reduce((accu, curr) => {
     accu.push({
       position: [Number(curr.longitude), Number(curr.latitude)],
@@ -270,11 +249,7 @@ class App extends Component {
               mapboxApiAccessToken={MAPBOX_TOKEN}
               mapStyle={this.state.style}
               onLoad={this._onMapLoad}
-            >
-              <div className="nav" style={navStyle}>
-                <NavigationControl onViewportChange={this._onViewportChange} />
-              </div>
-            </StaticMap>
+            />
           }
         </DeckGL>
       </div>
