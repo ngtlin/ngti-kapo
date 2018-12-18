@@ -1,6 +1,8 @@
-import React, { Component } from 'react';
-import { StaticMap } from 'react-map-gl';
+import React, {Component} from 'react';
+import {StaticMap, NavigationControl} from 'react-map-gl';
 import DeckGL from 'deck.gl';
+//import {MapboxLayer} from '@deck.gl/mapbox';
+import omnivore from 'leaflet-omnivore';
 import {
   LayerControls,
   MapStylePicker,
@@ -27,12 +29,21 @@ const INITIAL_VIEW_STATE = {
   latitude: 47.369972,
   //longitude: -4.519993, //London
   //latitude: 55.483792,
-  zoom: 11,
+  zoom: 15,
   minZoom: 5,
-  maxZoom: 16,
-  pitch: 30,
+  maxZoom: 24,
+  pitch: 45,
   bearing: 0
 };
+
+const navStyle = {
+  position: 'absolute',
+  bottom: 20,
+  right: 10,
+  padding: '10px'
+};
+
+const showLayerControls = false;
 
 class App extends Component {
 
@@ -118,13 +129,93 @@ class App extends Component {
     this.setState({ hover: { x, y, hoveredObject: object, label } });
   }
 
+  _onViewportChange = viewport => {
+    console.log('-XXX->_onViewportChange, viewport=', viewport);
+    this.setState({
+      viewport: { ...this.state.viewport, ...viewport }
+    });
+  }
+
   onStyleChange = style => {
     this.setState({ style });
   };
-  _onWebGLInitialize = gl => {
+
+  _onWebGLInitialized = gl => {
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
+
+    this.setState({gl});
   };
+
+  _onMapLoad = () => {
+    const map = this._map;
+    const deck = this._deck;
+
+    const MapboxTraffic = require('@mapbox/mapbox-gl-traffic');
+    map.addControl(new MapboxTraffic());
+
+    // fetch('../data/zurich-doc.kml')
+    //   .then(response => response.text())
+    //   .then(text => {
+    //     console.log('-XXX->KMLtext, ', text);
+    //     const kmlLayer = omnivore.kml.parse(text);
+    //     console.log('-XXX->parsedKml, ', kmlLayer);
+    //     kmlLayer.addTo(map);
+    //   })
+    //   .catch(error => {
+    //     console.log(error);
+    //   });
+    const klmLayer = omnivore.kml('https://res.cloudinary.com/ngti/raw/upload/v1545129598/klmdata/zurich-doc.kml').on('ready', function() {
+      console.log('-XXX->KML loading ready! kmlLayer=', klmLayer);
+      //map.fitBounds(klmLayer.getBounds());
+      // After the 'ready' event fires, the GeoJSON contents are accessible
+      // and you can iterate through layers to bind custom popups.
+      klmLayer.eachLayer(function(layer) {
+          // See the `.bindPopup` documentation for full details. This
+          // dataset has a property called `name`: your dataset might not,
+          // so inspect it and customize to taste.
+          layer.bindPopup(layer.feature.properties.name);
+      });      
+    }).addTo(map);
+
+    //map.addLayer(new MapboxLayer({id: 'my-scatterplot', deck}), 'waterway-label');
+    //Insert the layer beneath any symbol layer.
+    const layers = map.getStyle().layers;
+
+    let labelLayerId;
+    for (var i = 0; i < layers.length; i++) {
+        if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+            labelLayerId = layers[i].id;
+            break;
+        }
+    }
+    map.addLayer({
+      'id': '3d-buildings',
+      'source': 'composite',
+      'source-layer': 'building',
+      'filter': ['==', 'extrude', 'true'],
+      'type': 'fill-extrusion',
+      'minzoom': 15,
+      'paint': {
+        'fill-extrusion-color': '#aaa',
+
+        // use an 'interpolate' expression to add a smooth transition effect to the
+        // buildings as the user zooms in
+        'fill-extrusion-height': [
+            "interpolate", ["linear"], ["zoom"],
+            15, 0,
+            15.05, ["get", "height"]
+        ],
+        'fill-extrusion-base': [
+            "interpolate", ["linear"], ["zoom"],
+            15, 0,
+            15.05, ["get", "min_height"]
+        ],
+        'fill-extrusion-opacity': .6
+      }
+    }, labelLayerId);
+  }
+
   _updateLayerSettings(settings) {
     this.setState({ settings });
   }
@@ -134,7 +225,7 @@ class App extends Component {
     if (!data.length) {
       return null;
     }
-    const { hover, settings } = this.state;
+    const { hover, settings, gl } = this.state;
     //console.log('-XXX>settings, ', settings);
     return (
       <div>
@@ -152,13 +243,15 @@ class App extends Component {
           onStyleChange={this.onStyleChange}
           currentStyle={this.state.style}
         />
+        {showLayerControls &&
         <LayerControls
           settings={settings}
           propTypes={HEXAGON_CONTROLS}
           onChange={settings => this._updateLayerSettings(settings)}
         />
+        }
         <DeckGL
-          onWebGLInitialized={this._onWebGLInitialize}
+          onWebGLInitialized={this._onWebGLInitialized}
           layers={renderLayers({
             data: this.state.points,
             onHover: hover => this._onHover(hover),
@@ -168,10 +261,21 @@ class App extends Component {
           controller
           debug
         >
-          <StaticMap
-            mapboxApiAccessToken={MAPBOX_TOKEN}
-            mapStyle={this.state.style}
-          />
+          {gl&&
+            <StaticMap
+              ref={ref => {
+                // save a reference to the mapboxgl.Map instance
+                this._map = ref && ref.getMap();
+              }}
+              mapboxApiAccessToken={MAPBOX_TOKEN}
+              mapStyle={this.state.style}
+              onLoad={this._onMapLoad}
+            >
+              <div className="nav" style={navStyle}>
+                <NavigationControl onViewportChange={this._onViewportChange} />
+              </div>
+            </StaticMap>
+          }
         </DeckGL>
       </div>
     );

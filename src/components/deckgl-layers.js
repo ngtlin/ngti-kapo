@@ -77,8 +77,8 @@ export function renderLayers(props) {
         id: 'hexagon-cell-layer',
         data,
         getCentroid: d => d.position,
-        getElevation: d => d.counts * 3,
-        getColor: d => getColor(d.counts * 3),
+        getElevation: d => d.counts,
+        getColor: d => getColor(d.counts),
         angle: 0,
         onHover,
         ...settings

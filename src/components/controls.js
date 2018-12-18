@@ -10,10 +10,10 @@ export const HEXAGON_CONTROLS = {
   radius: {
     displayName: 'Hexagon Radius',
     type: 'range',
-    value: 80,
-    step: 50,
-    min: 50,
-    max: 500
+    value: 10,
+    step: 5,
+    min: 5,
+    max: 100
   },
   coverage: {
     displayName: 'Hexagon Coverage',

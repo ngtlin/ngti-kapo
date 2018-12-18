@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import MapGL from 'react-map-gl';
+import MapGL, {NavigationControl} from 'react-map-gl';
+
 import { MapStylePicker } from '../components/controls';
 //import { connect } from 'react-redux';
 //import './App.css';
@@ -7,6 +8,13 @@ import { MapStylePicker } from '../components/controls';
 console.log('-XXX->MapBox token=', process.env.MapboxAccessToken);
 //const MAPBOX_TOKEN = process.env.MapboxAccessToken;
 const MAPBOX_TOKEN = 'pk.eyJ1IjoidWJlcmRhdGEiLCJhIjoiY2o4OW90ZjNuMDV6eTMybzFzbmc3bWpvciJ9.zfRO_nfL1O3d2EuoNtE_NQ';
+
+const navStyle = {
+  position: 'absolute',
+  top: 0,
+  right: 10,
+  padding: '10px'
+};
 
 class Map extends Component {
 
@@ -18,10 +26,12 @@ class Map extends Component {
       viewport: {
         width: window.innerWidth,
         height: window.innerHeight,
-        longitude: -74,
-        latitude: 40.7,
-        zoom: 11,
-        maxZoom: 16
+        longitude: 8.542551, //zurich
+        latitude: 47.369972,
+        zoom: 12,
+        maxZoom: 18,
+        pitch: 0,
+        bearing: 0
       }
     }
   }
@@ -63,6 +73,9 @@ class Map extends Component {
           mapStyle={this.state.style}
           onViewportChange={viewport => this._onViewportChange(viewport)}
         >
+          <div className="nav" style={navStyle}>
+            <NavigationControl onViewportChange={this._onViewportChange} />
+          </div>
         </MapGL>
       </div>
     );
