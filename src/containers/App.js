@@ -144,18 +144,18 @@ class App extends Component {
     //   .catch(error => {
     //     console.log(error);
     //   });
-    const klmLayer = omnivore.kml('https://res.cloudinary.com/ngti/raw/upload/v1545129598/klmdata/zurich-doc.kml').on('ready', function() {
-      console.log('-XXX->KML loading ready! kmlLayer=', klmLayer);
-      //map.fitBounds(klmLayer.getBounds());
-      // After the 'ready' event fires, the GeoJSON contents are accessible
-      // and you can iterate through layers to bind custom popups.
-      klmLayer.eachLayer(function(layer) {
-          // See the `.bindPopup` documentation for full details. This
-          // dataset has a property called `name`: your dataset might not,
-          // so inspect it and customize to taste.
-          layer.bindPopup(layer.feature.properties.name);
-      });      
-    }).addTo(map);
+    // const klmLayer = omnivore.kml('https://res.cloudinary.com/ngti/raw/upload/v1545129598/klmdata/zurich-doc.kml').on('ready', function() {
+    //   console.log('-XXX->KML loading ready! kmlLayer=', klmLayer);
+    //   //map.fitBounds(klmLayer.getBounds());
+    //   // After the 'ready' event fires, the GeoJSON contents are accessible
+    //   // and you can iterate through layers to bind custom popups.
+    //   klmLayer.eachLayer(function(layer) {
+    //       // See the `.bindPopup` documentation for full details. This
+    //       // dataset has a property called `name`: your dataset might not,
+    //       // so inspect it and customize to taste.
+    //       layer.bindPopup(layer.feature.properties.name);
+    //   });      
+    // }).addTo(map);
 
     //map.addLayer(new MapboxLayer({id: 'my-scatterplot', deck}), 'waterway-label');
     //Insert the layer beneath any symbol layer.
