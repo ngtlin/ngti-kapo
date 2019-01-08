@@ -6,11 +6,11 @@ import {
   Rectangle,
   SceneMode,
   Math,
-  Color
-  //Cartesian3,
+  Color,
+  Cartesian3,
 }
 from 'cesium';
-import { Viewer, Camera, CameraFlyTo, Scene, Globe, Cesium3DTileset } from "resium";
+import { Viewer, Camera, CameraFlyTo, Scene, Globe, Cesium3DTileset, KmlDataSource } from "resium";
 
 class CesiumMap extends PureComponent {
 
@@ -38,9 +38,10 @@ class CesiumMap extends PureComponent {
       }),
       rectangle: this._rect
     });
-    this._camaraDestination = Rectangle.fromDegrees(7.87, 46.58, 7.88, 46.59); // Mürren
+    //this._camaraDestination = Rectangle.fromDegrees(7.87, 46.58, 7.88, 46.59); // Mürren
+    this._camaraDestination = Rectangle.fromDegrees(8.54, 47.32, 8.55, 47.34); // Zürich
     this._camaraOrientation = {
-      heading: Math.toRadians(175.0),
+      heading: Math.toRadians(0),
       pitch: Math.toRadians(-35.0),
       roll: 0.0
     };
@@ -51,7 +52,8 @@ class CesiumMap extends PureComponent {
         baseColor: Color.WHITE
       },
       tileSetUrl: "https://vectortiles0.geo.admin.ch/3d-tiles/ch.swisstopo.swisstlm3d.3d/20180716/tileset.json"
-    }
+    };
+    this._klmSource = "https://res.cloudinary.com/ngti/raw/upload/v1545129598/klmdata/zurich-doc.kml";
   }
 
   getCesiumTileset = () => {
@@ -86,13 +88,13 @@ class CesiumMap extends PureComponent {
     console.log('-XXX->_onInitialTilesLoad!');
   }
   _onLoadProgress = (numberOfPendingRequests, numberOfTilesProcessing) => {
-    console.log('-XXX->_onLoadProgress! nbReq=', numberOfPendingRequests, ', nbProc=', numberOfTilesProcessing);
+    //console.log('-XXX->_onLoadProgress! nbReq=', numberOfPendingRequests, ', nbProc=', numberOfTilesProcessing);
   }
   _onTileFailed = (tile) => {
     console.log('-XXX->_onTileFailed! tile=', tile);
   }
   _onTileLoad = (tile) => {
-    console.log('-XXX->_onTileLoad! tile=', tile);
+    //console.log('-XXX->_onTileLoad! tile=', tile);
   }
   _onTileUnload = () => {
     console.log('-XXX->_onTileUnload!');
@@ -100,6 +102,17 @@ class CesiumMap extends PureComponent {
   _onTileVisible = (tile) => {
     //console.log('-XXX->_onTileVisible! tile=', tile);
   }
+
+  _onKlmLoad = () => {
+    console.log('-XXX->_onKlmLoad!');
+  }
+
+  _onKlmError = () => {
+    console.log('-XXX->_onKlmError!');
+  }
+
+  /*
+  */
 
   render() {
     console.log('-XXX->render, terrrainOProvider=', this._terrainProvider, ', imageryProvider=', this._imageryProvider);
@@ -138,7 +151,9 @@ class CesiumMap extends PureComponent {
             destination={this._camaraDestination}
             orientation={this._camaraOrientation}
           />
-          <Cesium3DTileset
+        </Scene>
+        <KmlDataSource data={this._klmSource} onLoad={this._onKlmLoad} onError={this._onKlmError} />
+        <Cesium3DTileset
             url={this._sceneSettins.tileSetUrl}
             onReady={this._onTileSetReady}
             onAllTilesLoad={this._onAllTilesLoad}
@@ -149,8 +164,6 @@ class CesiumMap extends PureComponent {
             onTileUnload={this._onTileUnload}
             onTileVisible={this._onTileVisible}
           />
-        </Scene>
-        
       </Viewer>
     );
   }
