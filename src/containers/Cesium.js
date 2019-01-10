@@ -12,6 +12,10 @@ import {
 from 'cesium';
 import { Viewer, Camera, CameraFlyTo, Scene, Globe, Cesium3DTileset, KmlDataSource } from "resium";
 
+import Controls from '../components/cesiumControls';
+
+const showControls = false;
+
 class CesiumMap extends PureComponent {
 
   componentWillMount() {
@@ -54,6 +58,22 @@ class CesiumMap extends PureComponent {
       tileSetUrl: "https://vectortiles0.geo.admin.ch/3d-tiles/ch.swisstopo.swisstlm3d.3d/20180716/tileset.json"
     };
     this._klmSource = "https://res.cloudinary.com/ngti/raw/upload/v1545129598/klmdata/zurich-doc.kml";
+
+    console.log('-XXX->MOUNTING, viwer=', this._viewer);
+  }
+
+  componentDidMount() {
+    console.log('-XXX->MOUNTED, viwer=', this._viewer);
+    const options = {};
+    options.defaultResetView = this._camaraDestination;
+    // Only the compass will show on the map
+    options.enableCompass = true;
+    options.enableZoomControls = true;
+    options.enableDistanceLegend = true;
+    console.log('-XXX->MOUNTED, window=', window);
+    if (window.viewerCesiumNavigationMixin) {
+      this._viewer.extend(window.viewerCesiumNavigationMixin, options);
+    }
   }
 
   getCesiumTileset = () => {
@@ -75,7 +95,7 @@ class CesiumMap extends PureComponent {
   }
 
   _onTileSetReady = (tileset) => {
-    console.log('-XXX->_onTileSetReady, tileset=', tileset);
+    console.log('-***->_onTileSetReady, tileset=', tileset);
     if (this._viewer) {
       this._viewer.zoomTo(tileset);
     }
@@ -111,49 +131,47 @@ class CesiumMap extends PureComponent {
     console.log('-XXX->_onKlmError!');
   }
 
-  /*
-  */
-
   render() {
-    console.log('-XXX->render, terrrainOProvider=', this._terrainProvider, ', imageryProvider=', this._imageryProvider);
-    console.log('-XXX->render, tileSetUrl=', this._sceneSettins.tileSetUrl);
-
+    //console.log('-XXX->render, terrrainOProvider=', this._terrainProvider, ', imageryProvider=', this._imageryProvider);
+    //console.log('-XXX->render, tileSetUrl=', this._sceneSettins.tileSetUrl);
     return (
-      <Viewer
-        ref={e => {
-          if (e !== null && e.cesiumElement) {
-            this._viewer = e.cesiumElement;
-          } else {
-            this._viewer = undefined;
-          }
-        }}
-        baseLayerPicker={false}
-        animation={false}
-        terrainProvider={this._terrainProvider}
-        imageryProvider={this._imageryProvider}
-        sceneModePicker={false}
-        selectionIndicator={false}
-        timeline={true}
-        homeButton={false}
-        full
-      >
-        <Scene
-          mode={this._sceneSettins.sceneMode}
-          backgroundColor={this._sceneSettins.backgroundColor}
+      <div>
+        <Viewer
+          ref={e => {
+            if (e !== null && e.cesiumElement) {
+              console.log('-XXX->Plugin navigation!')
+              this._viewer = e.cesiumElement;
+            } else {
+              this._viewer = undefined;
+            }
+          }}
+          baseLayerPicker={false}
+          animation={false}
+          terrainProvider={this._terrainProvider}
+          imageryProvider={this._imageryProvider}
+          sceneModePicker={false}
+          selectionIndicator={false}
+          timeline={true}
+          homeButton={false}
+          full
         >
-          <Globe baseColor={this._sceneSettins.globe.baseColor} />
-          <Camera
-            onMoveEnd={this._onCameraMoveEnd}
-            onMoveStart={this._onCameraMoveStart}
-            onChange={this._onCameraChange}
-          />
-          <CameraFlyTo
-            destination={this._camaraDestination}
-            orientation={this._camaraOrientation}
-          />
-        </Scene>
-        <KmlDataSource data={this._klmSource} onLoad={this._onKlmLoad} onError={this._onKlmError} />
-        <Cesium3DTileset
+          <Scene
+            mode={this._sceneSettins.sceneMode}
+            backgroundColor={this._sceneSettins.backgroundColor}
+          >
+            <Globe baseColor={this._sceneSettins.globe.baseColor} />
+            <Camera
+              onMoveEnd={this._onCameraMoveEnd}
+              onMoveStart={this._onCameraMoveStart}
+              onChange={this._onCameraChange}
+            />
+            <CameraFlyTo
+              destination={this._camaraDestination}
+              orientation={this._camaraOrientation}
+            />
+          </Scene>
+          <KmlDataSource data={this._klmSource} onLoad={this._onKlmLoad} onError={this._onKlmError} />
+          <Cesium3DTileset
             url={this._sceneSettins.tileSetUrl}
             onReady={this._onTileSetReady}
             onAllTilesLoad={this._onAllTilesLoad}
@@ -164,7 +182,11 @@ class CesiumMap extends PureComponent {
             onTileUnload={this._onTileUnload}
             onTileVisible={this._onTileVisible}
           />
-      </Viewer>
+        </Viewer>
+        {showControls &&
+          <Controls />
+        }
+      </div>
     );
   }
 }
