@@ -8,6 +8,8 @@ import {
   Math,
   Color,
   Cartesian3,
+  DefaultProxy,
+  //createOpenStreetMapImageryProvider
 }
 from 'cesium';
 import { Viewer, Camera, CameraFlyTo, Scene, Globe, Cesium3DTileset, KmlDataSource } from "resium";
@@ -63,7 +65,16 @@ class CesiumMap extends PureComponent {
   }
 
   componentDidMount() {
-    console.log('-XXX->MOUNTED, viwer=', this._viewer);
+    //console.log('-XXX->MOUNTED, viwer=', this._viewer);
+    const layers = this._viewer.scene.imageryLayers;
+    console.log('-XXX->MOUNTED, imageryLayers=', layers);
+    var clouds = layers.addImageryProvider(new UrlTemplateImageryProvider({
+      url : 'http://a.tile.openweathermap.org/map/clouds',
+      fileExtension : 'png',
+      tileMatrixSetID : 'a',
+      proxy: new DefaultProxy('/proxy/')
+  }));
+
     const options = {};
     options.defaultResetView = this._camaraDestination;
     // Only the compass will show on the map
