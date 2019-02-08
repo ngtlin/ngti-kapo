@@ -18,6 +18,8 @@ const ModuleNotFoundPlugin = require('react-dev-utils/ModuleNotFoundPlugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin-alt');
 const typescriptFormatter = require('react-dev-utils/typescriptFormatter');
 
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlWebpackIncludeAssetsPlugin = require('html-webpack-include-assets-plugin');
 
 // Webpack uses `publicPath` to determine where the app is being served from.
 // In development, we always serve from the root. This makes config easier.
@@ -81,6 +83,10 @@ module.exports = {
   // You may want 'eval' instead if you prefer to see the compiled output in DevTools.
   // See the discussion in https://github.com/facebook/create-react-app/issues/343
   devtool: 'cheap-module-source-map',
+  // Loaded externally by HTML
+  externals: {
+    cesium: 'Cesium'
+  },
   // These are the "entry points" to our application.
   // This means they will be the "root" imports that are included in JS bundle.
   entry: [
@@ -375,6 +381,22 @@ module.exports = {
     new ManifestPlugin({
       fileName: 'asset-manifest.json',
       publicPath: publicPath,
+    }),
+    new CopyWebpackPlugin([
+      {
+        from: "node_modules/cesium/Build/Cesium",
+        to: 'cesium'
+      }
+    ]),
+    new HtmlWebpackIncludeAssetsPlugin({
+      append: false,
+      assets: [
+        'cesium/Widgets/widgets.css',
+        'cesium/Cesium.js'
+      ]
+    }),
+    new webpack.DefinePlugin({
+      CESIUM_BASE_URL: JSON.stringify('cesium')
     }),
     // TypeScript type checking
     useTypeScript &&

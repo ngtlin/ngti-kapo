@@ -1,16 +1,13 @@
-import {ScatterplotLayer, HexagonLayer, HexagonCellLayer} from 'deck.gl';
+import {HexagonCellLayer} from 'deck.gl';
 
-const PICKUP_COLOR = [114, 19, 108];
-const DROPOFF_COLOR = [243, 185, 72];
-
-const HEATMAP_COLORS = [
-  [255, 255, 204],
-  [199, 233, 180],
-  [127, 205, 187],
-  [65, 182, 196],
-  [44, 127, 184],
-  [37, 52, 148]
-];
+// const HEATMAP_COLORS = [
+//   [255, 255, 204],
+//   [199, 233, 180],
+//   [127, 205, 187],
+//   [65, 182, 196],
+//   [44, 127, 184],
+//   [37, 52, 148]
+// ];
 
 const LIGHT_SETTINGS = {
   lightsPosition: [-73.8, 40.5, 8000, -74.2, 40.9, 8000],
@@ -21,7 +18,7 @@ const LIGHT_SETTINGS = {
   numberOfLights: 2
 };
 
-const elevationRange = [0, 1000];
+//const elevationRange = [0, 400];
 
 const getColor = counts => {
   if (counts >= 1500) {
@@ -79,6 +76,8 @@ export function renderLayers(props) {
         getCentroid: d => d.position,
         getElevation: d => d.counts,
         getColor: d => getColor(d.counts),
+        lightSettings: LIGHT_SETTINGS,
+        //elevationRange,
         angle: 0,
         onHover,
         ...settings

@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { mapStylePicker, layerControl } from './style';
 
+import './controls.css';
+
 export const HEXAGON_CONTROLS = {
   showHexagon: {
     displayName: 'Show Hexagon',
@@ -10,11 +12,12 @@ export const HEXAGON_CONTROLS = {
   radius: {
     displayName: 'Hexagon Radius',
     type: 'range',
-    value: 10,
+    value: 30,
     step: 5,
     min: 5,
     max: 100
   },
+  /*
   coverage: {
     displayName: 'Hexagon Coverage',
     type: 'range',
@@ -23,7 +26,6 @@ export const HEXAGON_CONTROLS = {
     min: 0,
     max: 1
   },
-  /*
   upperPercentile: {
     displayName: 'Hexagon Upper Percentile',
     type: 'range',
