@@ -1,15 +1,21 @@
 import React, {Component} from 'react';
 import {StaticMap} from 'react-map-gl';
 import DeckGL from 'deck.gl';
+import * as d3 from 'd3';
+import * as ch from 'swiss-projection-light';
 //import {MapboxLayer} from '@deck.gl/mapbox';
-import omnivore from '@mapbox/leaflet-omnivore';
+//import omnivore from '@mapbox/leaflet-omnivore';
+import MapboxTraffic from '@mapbox/mapbox-gl-traffic';
+
 import {
   LayerControls,
   MapStylePicker,
   HEXAGON_CONTROLS
 } from '../components/controls';
+import PlaybackControl from '../components/playbackControl';
+
 import { tooltipStyle } from '../components/style';
-import zurichData from '../data/zurich-heatmap';
+//import zurichData from '../data/zurich-heatmap';
 import { renderLayers } from '../components/deckgl-layers';
 
 //import { connect } from 'react-redux';
@@ -19,27 +25,121 @@ console.log('-XXX->MapBox token=', process.env.MapboxAccessToken);
 const MAPBOX_TOKEN = 'pk.eyJ1IjoidWJlcmRhdGEiLCJhIjoiY2o4OW90ZjNuMDV6eTMybzFzbmc3bWpvciJ9.zfRO_nfL1O3d2EuoNtE_NQ';
 
 const INITIAL_VIEW_STATE = {
-  //longitude: -74, //New York
-  //latitude: 40.7,
-  longitude: 8.542551, //zurich
-  latitude: 47.369972,
-  //longitude: -4.519993, //London
-  //latitude: 55.483792,
-  zoom: 15,
+  // longitude: 8.542551, //zurich
+  // latitude: 47.369972,
+  longitude: 7.44744, // Bern
+  latitude: 46.94809,
+  zoom: 13,
   minZoom: 5,
   maxZoom: 24,
-  pitch: 45,
-  bearing: 0
+  pitch: 50,
+  bearing: 0,
 };
 
-const navStyle = {
-  position: 'absolute',
-  bottom: 20,
-  right: 10,
-  padding: '10px'
-};
+const showLayerControls = true;
+const showPlaybackControl = true;
+const autoStartPlayback = false;
 
-const showLayerControls = false;
+const DATE = 'September 12, 2018';
+const DATA_PATH = '../data/KAPOBern_20180912_15min/';
+const DATA_FILES = [
+  'heatmap_00:00:00.csv',
+  'heatmap_00:15:00.csv',
+  'heatmap_00:30:00.csv',
+  'heatmap_00:45:00.csv',
+  'heatmap_01:00:00.csv',
+  'heatmap_01:15:00.csv',
+  'heatmap_01:30:00.csv',
+  'heatmap_01:45:00.csv',
+  'heatmap_02:00:00.csv',
+  'heatmap_02:15:00.csv',
+  'heatmap_02:30:00.csv',
+  'heatmap_02:45:00.csv',
+  'heatmap_03:00:00.csv',
+  'heatmap_03:15:00.csv',
+  'heatmap_03:30:00.csv',
+  'heatmap_03:45:00.csv',
+  'heatmap_04:00:00.csv',
+  'heatmap_04:15:00.csv',
+  'heatmap_04:30:00.csv',
+  'heatmap_04:45:00.csv',
+  'heatmap_05:00:00.csv',
+  'heatmap_05:15:00.csv',
+  'heatmap_05:30:00.csv',
+  'heatmap_05:45:00.csv',
+  'heatmap_06:00:00.csv',
+  'heatmap_06:15:00.csv',
+  'heatmap_06:30:00.csv',
+  'heatmap_06:45:00.csv',
+  'heatmap_07:00:00.csv',
+  'heatmap_07:15:00.csv',
+  'heatmap_07:30:00.csv',
+  'heatmap_07:45:00.csv',
+  'heatmap_08:00:00.csv',
+  'heatmap_08:15:00.csv',
+  'heatmap_08:30:00.csv',
+  'heatmap_08:45:00.csv',
+  'heatmap_09:00:00.csv',
+  'heatmap_09:15:00.csv',
+  'heatmap_09:30:00.csv',
+  'heatmap_09:45:00.csv',
+  'heatmap_10:00:00.csv',
+  'heatmap_10:15:00.csv',
+  'heatmap_10:30:00.csv',
+  'heatmap_10:45:00.csv',
+  'heatmap_11:00:00.csv',
+  'heatmap_11:15:00.csv',
+  'heatmap_11:30:00.csv',
+  'heatmap_11:45:00.csv',
+  'heatmap_12:00:00.csv',
+  'heatmap_12:15:00.csv',
+  'heatmap_12:30:00.csv',
+  'heatmap_12:45:00.csv',
+  'heatmap_13:00:00.csv',
+  'heatmap_13:15:00.csv',
+  'heatmap_13:30:00.csv',
+  'heatmap_13:45:00.csv',
+  'heatmap_14:00:00.csv',
+  'heatmap_14:15:00.csv',
+  'heatmap_14:30:00.csv',
+  'heatmap_14:45:00.csv',
+  'heatmap_15:00:00.csv',
+  'heatmap_15:15:00.csv',
+  'heatmap_15:30:00.csv',
+  'heatmap_15:45:00.csv',
+  'heatmap_16:00:00.csv',
+  'heatmap_16:15:00.csv',
+  'heatmap_16:30:00.csv',
+  'heatmap_16:45:00.csv',
+  'heatmap_17:00:00.csv',
+  'heatmap_17:15:00.csv',
+  'heatmap_17:30:00.csv',
+  'heatmap_17:45:00.csv',
+  'heatmap_18:00:00.csv',
+  'heatmap_18:15:00.csv',
+  'heatmap_18:30:00.csv',
+  'heatmap_18:45:00.csv',
+  'heatmap_19:00:00.csv',
+  'heatmap_19:15:00.csv',
+  'heatmap_19:30:00.csv',
+  'heatmap_19:45:00.csv',
+  'heatmap_20:00:00.csv',
+  'heatmap_20:15:00.csv',
+  'heatmap_20:30:00.csv',
+  'heatmap_20:45:00.csv',
+  'heatmap_21:00:00.csv',
+  'heatmap_21:15:00.csv',
+  'heatmap_21:30:00.csv',
+  'heatmap_21:45:00.csv',
+  'heatmap_22:00:00.csv',
+  'heatmap_22:15:00.csv',
+  'heatmap_22:30:00.csv',
+  'heatmap_22:45:00.csv',
+  'heatmap_23:00:00.csv',
+  'heatmap_23:15:00.csv',
+  'heatmap_23:30:00.csv',
+  'heatmap_23:45:00.csv',
+];
 
 class App extends Component {
 
@@ -60,31 +160,103 @@ class App extends Component {
         }),
         {}
       ),
-      style: 'mapbox://styles/mapbox/light-v9'
+      style: 'mapbox://styles/mapbox/dark-v9',
+      playback: {
+        curFileIndex: 0,
+        minFrameRate: 0.1, // 10 seconds ome frame
+        maxFrameRate: 10, // 10 frame per second
+        frameRate: 1,  // frame per second
+        title: DATE,
+        playing: false,
+        currentPlayed: ''
+      }
     };
   }
 
-  // componentWillMount() {
-  //   KmlReader.parseKml("../data/zurich-doc.kml");
-  // }
-
   componentDidMount() {
-    this._processData();
+    this._loadData();
+    if (autoStartPlayback) {
+      this._startPlay();
+    }
   }
 
-  _processData = () => {
-   const points = /*heatmapData*/zurichData.reduce((accu, curr) => {
-    accu.push({
-      position: [Number(curr.longitude), Number(curr.latitude)],
-      counts: curr.counts,
-      //color: this._converColorHex(curr.color),
-     });
-    return accu;
-  }, []);
-    console.log('-XXX->_processData, points: ', points);
-    this.setState({
-      points
+  _startPlay = () => {
+    console.log('-XXX->_startPlay, ENTRY!');
+    //this._stopPlay();
+    this._timerId = setInterval(() => {
+      if (this.state.playback.playing) {
+        console.log('-XXX->_startPlay, load next file!');
+        let nextFileIdx = this.state.playback.curFileIndex + 1;
+        if (nextFileIdx < DATA_FILES.length) {
+          const newPlaybackState = {
+            ...this.state.playback,
+            curFileIndex: nextFileIdx,
+            playing: true
+          }
+          this.setState({ playback: newPlaybackState })
+          this._loadData();
+        } else {
+          //auto stop play
+          this._stopPlay();
+        }
+      }
+    }, 1000 / this.state.playback.frameRate);
+  }
+
+  _stopPlay = () => {
+    if (this._timerId !== null) {
+      clearInterval(this._timerId);
+      this._timerId = null;
+      const newPlaybackState = {
+        curFileIndex: 0,
+        frameRate: 1,  // frame per second
+        title: DATE,
+        playing: false
+      }
+      this.setState({ playback: newPlaybackState });
+    }
+  }
+
+  _loadData = () => {
+    const filePlayed = DATA_FILES[this.state.playback.curFileIndex];
+    const file = DATA_PATH + filePlayed;
+    d3.csv(file, d => {
+      const point = ch.lv03.toWgs.point([d.x, d.y]);
+      //console.log('-XXX->row=', d, ', point=', point);
+      return { 
+        position: point, counts: Number(d.score), 
+      }; 
+    })
+    .then(data => {
+      // data is now whole data set
+      // draw chart in here!
+      console.log('-XXX->data=', data);
+      const newPlaybackState = {
+        ...this.state.playback,
+        currentPlayed: filePlayed
+      }
+      this.setState({
+        points: data,
+        playback: newPlaybackState
+      });
+      console.log('-XXX->state=', this.state);
+    })
+    .catch(error => {
+      // handle error
+      console.log('-XXX->', error);
     });
+    // const points = /*heatmapData*/zurichData.reduce((accu, curr) => {
+    //   accu.push({
+    //     position: [Number(curr.longitude), Number(curr.latitude)],
+    //     counts: curr.counts,
+    //     //color: this._converColorHex(curr.color),
+    //   });
+    //   return accu;
+    // }, []);
+    // console.log('-XXX->_processData, points: ', points);
+    // this.setState({
+    //   points
+    // });
   };
 
   _converColorHex = hex => {
@@ -128,10 +300,12 @@ class App extends Component {
 
   _onMapLoad = () => {
     const map = this._map;
-    const deck = this._deck;
+    //const deck = this._deck;
 
-    const MapboxTraffic = require('@mapbox/mapbox-gl-traffic');
-    map.addControl(new MapboxTraffic());
+    // const MapboxTraffic = require('@mapbox/mapbox-gl-traffic');
+    const trafficPlugin = new MapboxTraffic({showTraffic: true});
+    map.addControl(trafficPlugin);
+    //trafficPlugin.toggleTraffic();
 
     // fetch('../data/zurich-doc.kml')
     //   .then(response => response.text())
@@ -144,18 +318,18 @@ class App extends Component {
     //   .catch(error => {
     //     console.log(error);
     //   });
-    const klmLayer = omnivore.kml('https://res.cloudinary.com/ngti/raw/upload/v1545129598/klmdata/zurich-doc.kml').on('ready', function() {
-      console.log('-XXX->KML loading ready! kmlLayer=', klmLayer);
-      //map.fitBounds(klmLayer.getBounds());
-      // After the 'ready' event fires, the GeoJSON contents are accessible
-      // and you can iterate through layers to bind custom popups.
-      klmLayer.eachLayer(function(layer) {
-          // See the `.bindPopup` documentation for full details. This
-          // dataset has a property called `name`: your dataset might not,
-          // so inspect it and customize to taste.
-          layer.bindPopup(layer.feature.properties.name);
-      });      
-    }).addTo(map);
+    // const klmLayer = omnivore.kml('https://res.cloudinary.com/ngti/raw/upload/v1545129598/klmdata/zurich-doc.kml').on('ready', function() {
+    //   console.log('-XXX->KML loading ready! kmlLayer=', klmLayer);
+    //   //map.fitBounds(klmLayer.getBounds());
+    //   // After the 'ready' event fires, the GeoJSON contents are accessible
+    //   // and you can iterate through layers to bind custom popups.
+    //   klmLayer.eachLayer(function(layer) {
+    //       // See the `.bindPopup` documentation for full details. This
+    //       // dataset has a property called `name`: your dataset might not,
+    //       // so inspect it and customize to taste.
+    //       layer.bindPopup(layer.feature.properties.name);
+    //   });      
+    // }).addTo(map);
 
     //map.addLayer(new MapboxLayer({id: 'my-scatterplot', deck}), 'waterway-label');
     //Insert the layer beneath any symbol layer.
@@ -199,12 +373,31 @@ class App extends Component {
     this.setState({ settings });
   }
 
+  _updatePlaybackSettings(settings) {
+    //console.log('-XXX->_updatePlaybackSettings, ', settings);
+    this.setState({playback: settings});
+  }
+
+  _onPlayBtnClicked = () => {
+    //toggle play/pause
+    const playing = this.state.playback.playing;
+    console.log('-XXX->_onPlayBtnClicked, currently playing=', playing);
+    const newPlaybackState = {
+      ...this.state.playback,
+      playing: !playing
+    }
+    this.setState({ playback: newPlaybackState });
+    if (!this._timerId) {
+      this._startPlay();
+    }
+  }
+
   render() {
     const data = this.state.points;
     if (!data.length) {
       return null;
     }
-    const { hover, settings, gl } = this.state;
+    const { hover, settings, gl, playback } = this.state;
     //console.log('-XXX>settings, ', settings);
     return (
       <div>
@@ -227,6 +420,13 @@ class App extends Component {
           settings={settings}
           propTypes={HEXAGON_CONTROLS}
           onChange={settings => this._updateLayerSettings(settings)}
+        />
+        }
+        {showPlaybackControl &&
+        <PlaybackControl
+          settings={playback}
+          onChange={settings => this._updatePlaybackSettings(settings)}
+          onClick={this._onPlayBtnClicked}
         />
         }
         <DeckGL
