@@ -80,6 +80,7 @@ export function renderLayers(props) {
         //elevationRange,
         angle: 0,
         onHover,
+        pickable: true,
         ...settings
       })
   ];

@@ -30,7 +30,6 @@ export default class PlaybackControl extends Component {
 
   render() {
     const { settings } = this.props;
-    console.log('-XXX->Playback, settings=', settings);
     const frameRateSliderProps = {
       settingName: 'Speed',
       value: settings.frameRate,

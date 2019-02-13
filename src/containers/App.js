@@ -19,7 +19,7 @@ import { tooltipStyle } from '../components/style';
 import { renderLayers } from '../components/deckgl-layers';
 
 //import { connect } from 'react-redux';
-//import './App.css';
+import './App.css';
 console.log('-XXX->MapBox token=', process.env.MapboxAccessToken);
 //const MAPBOX_TOKEN = process.env.MapboxAccessToken;
 const MAPBOX_TOKEN = 'pk.eyJ1IjoidWJlcmRhdGEiLCJhIjoiY2o4OW90ZjNuMDV6eTMybzFzbmc3bWpvciJ9.zfRO_nfL1O3d2EuoNtE_NQ';
@@ -253,18 +253,6 @@ class App extends Component {
       // handle error
       console.log('-XXX->', error);
     });
-    // const points = /*heatmapData*/zurichData.reduce((accu, curr) => {
-    //   accu.push({
-    //     position: [Number(curr.longitude), Number(curr.latitude)],
-    //     counts: curr.counts,
-    //     //color: this._converColorHex(curr.color),
-    //   });
-    //   return accu;
-    // }, []);
-    // console.log('-XXX->_processData, points: ', points);
-    // this.setState({
-    //   points
-    // });
   };
 
   _converColorHex = hex => {
@@ -280,10 +268,7 @@ class App extends Component {
 
   _onHover({ x, y, object }) {
     const label = object ? 
-      object.points ?
-        `${object.points.length} pickups or dropoffs here` :
-        object.pickup ? 'Pickup' : 'Dropoff'
-      : null;
+      object.counts : null;
       
     this.setState({ hover: { x, y, hoveredObject: object, label } });
   }
@@ -401,16 +386,10 @@ class App extends Component {
     }
   }
 
-  render() {
-    const data = this.state.points;
-    if (!data.length) {
-      return null;
-    }
-    const { hover, settings, gl, playback } = this.state;
-    //console.log('-XXX>settings, ', settings);
-    return (
-      <div>
-        {hover.hoveredObject && (
+  _renderTooltip = () => {
+    const {hover} = this.state;
+    /*
+    {hover.hoveredObject && (
           <div
             style={{
               ...tooltipStyle,
@@ -420,6 +399,30 @@ class App extends Component {
             <div>{hover.label}</div>
           </div>
         )}
+    */
+    return (
+      hover.hoveredObject && (
+        <div className="tooltip" style={{top: hover.y, left: hover.x}}>
+          <div>
+            <b>Counts</b>
+          </div>
+          <div>
+            <div>{hover.label}</div>
+          </div>
+        </div>
+      )
+    );
+  }
+
+  render() {
+    const data = this.state.points;
+    if (!data.length) {
+      return null;
+    }
+    const { hover, settings, gl, playback } = this.state;
+    //console.log('-XXX>settings, ', settings);
+    return (
+      <div>
         <MapStylePicker
           onStyleChange={this.onStyleChange}
           currentStyle={this.state.style}
@@ -460,6 +463,7 @@ class App extends Component {
               onLoad={this._onMapLoad}
             />
           }
+          {this._renderTooltip}
         </DeckGL>
       </div>
     );
