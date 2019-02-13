@@ -217,6 +217,14 @@ class App extends Component {
     }
   }
 
+  _resetPlay = () => {
+    if (this._timerId !== null) {
+      clearInterval(this._timerId);
+      this._timerId = null;
+    }
+    this._startPlay();
+  }
+
   _loadData = () => {
     const filePlayed = DATA_FILES[this.state.playback.curFileIndex];
     const file = DATA_PATH + filePlayed;
@@ -376,6 +384,7 @@ class App extends Component {
   _updatePlaybackSettings(settings) {
     //console.log('-XXX->_updatePlaybackSettings, ', settings);
     this.setState({playback: settings});
+    this._resetPlay();
   }
 
   _onPlayBtnClicked = () => {
