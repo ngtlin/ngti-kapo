@@ -107,7 +107,7 @@ export function renderLayers(props) {
           extruded: settings.show3D,
           wireframe: true,
           fp64: true,
-          getElevation: f => Math.sqrt(f.properties.counts) * 10,
+          getElevation: f => f.properties.counts, //Math.sqrt(f.properties.counts) * 10,
           getFillColor: f => COLOR_SCALE(f.properties.counts/RANGE_MAX),
           getLineColor: [255, 255, 255],
           lightSettings: LIGHT_SETTINGS,
