@@ -5,14 +5,14 @@ import './controls.css';
 
 export const HEXAGON_CONTROLS = {
   showHexagon: {
-    displayName: 'Show Hexagon',
+    displayName: 'Show hexagon heatmap',
     type: 'boolean',
     value: true
   },
   radius: {
-    displayName: 'Hexagon Radius',
+    displayName: 'Radius',
     type: 'range',
-    value: 30,
+    value: 50,
     step: 5,
     min: 5,
     max: 100
@@ -62,6 +62,19 @@ export const SCATTERPLOT_CONTROLS = {
     step: 10,
     min: 10,
     max: 200
+  }
+};
+
+export const HEATMAP_CONTROLS = {
+  showGeoJson: {
+    displayName: 'Show Heatmap',
+    type: 'boolean',
+    value: true
+  },
+  show3D: {
+    displayName: '3D Mode',
+    type: 'boolean',
+    value: true
   }
 };
 

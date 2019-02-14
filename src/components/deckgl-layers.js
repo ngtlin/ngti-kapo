@@ -1,13 +1,26 @@
-import {HexagonCellLayer} from 'deck.gl';
+import {HexagonCellLayer, GeoJsonLayer} from 'deck.gl';
+import {scaleThreshold} from 'd3-scale';
 
-// const HEATMAP_COLORS = [
-//   [255, 255, 204],
-//   [199, 233, 180],
-//   [127, 205, 187],
-//   [65, 182, 196],
-//   [44, 127, 184],
-//   [37, 52, 148]
-// ];
+const RANGE_MAX = 2000;
+
+const COLOR_SCALE = scaleThreshold()
+  .domain([-0.6, -0.45, -0.3, -0.15, 0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2])
+  .range([
+    [65, 182, 196],
+    [127, 205, 187],
+    [199, 233, 180],
+    [237, 248, 177],
+    // zero
+    [255, 255, 204],
+    [255, 237, 160],
+    [254, 217, 118],
+    [254, 178, 76],
+    [253, 141, 60],
+    [252, 78, 42],
+    [227, 26, 28],
+    [189, 0, 38],
+    [128, 0, 38]
+  ]);
 
 const LIGHT_SETTINGS = {
   lightsPosition: [-73.8, 40.5, 8000, -74.2, 40.9, 8000],
@@ -18,7 +31,7 @@ const LIGHT_SETTINGS = {
   numberOfLights: 2
 };
 
-//const elevationRange = [0, 400];
+//const elevationRange = [0, 2000];
 
 const getColor = counts => {
   if (counts >= 1500) {
@@ -37,6 +50,7 @@ const getColor = counts => {
 
 export function renderLayers(props) {
   const { data, onHover, settings } = props;
+
   return [
     /*
     settings.showScatterplot &&
@@ -82,6 +96,23 @@ export function renderLayers(props) {
         onHover,
         pickable: true,
         ...settings
+      }),
+      settings.showGeoJson &&
+        new GeoJsonLayer({
+          id: 'geojson',
+          data,
+          opacity: 0.7,
+          stroked: true,
+          filled: true,
+          extruded: settings.show3D,
+          wireframe: true,
+          fp64: true,
+          getElevation: f => Math.sqrt(f.properties.counts) * 10,
+          getFillColor: f => COLOR_SCALE(f.properties.counts/RANGE_MAX),
+          getLineColor: [255, 255, 255],
+          lightSettings: LIGHT_SETTINGS,
+          pickable: true,
+          onHover
       })
   ];
 }

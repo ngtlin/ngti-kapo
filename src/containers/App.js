@@ -4,17 +4,17 @@ import DeckGL from 'deck.gl';
 import * as d3 from 'd3';
 import * as ch from 'swiss-projection-light';
 //import {MapboxLayer} from '@deck.gl/mapbox';
-//import omnivore from '@mapbox/leaflet-omnivore';
 import MapboxTraffic from '@mapbox/mapbox-gl-traffic';
 
 import {
   LayerControls,
   MapStylePicker,
-  HEXAGON_CONTROLS
+  HEXAGON_CONTROLS,
+  HEATMAP_CONTROLS
 } from '../components/controls';
 import PlaybackControl from '../components/playbackControl';
 
-import { tooltipStyle } from '../components/style';
+//import { tooltipStyle } from '../components/style';
 //import zurichData from '../data/zurich-heatmap';
 import { renderLayers } from '../components/deckgl-layers';
 
@@ -39,6 +39,9 @@ const INITIAL_VIEW_STATE = {
 const showLayerControls = true;
 const showPlaybackControl = true;
 const autoStartPlayback = false;
+
+const SHOW_GEOJSON_HEATMAP = true;
+const HEATMAP_CELL_SIZE = 100; // in meters
 
 const DATE = 'September 12, 2018';
 const DATA_PATH = '../data/KAPOBern_20180912_15min/';
@@ -146,17 +149,27 @@ class App extends Component {
   constructor (props) {
     super(props);
 
+    let CONTROLS;
+
+    if (SHOW_GEOJSON_HEATMAP) {
+      CONTROLS = HEATMAP_CONTROLS;
+    } else {
+      CONTROLS = HEXAGON_CONTROLS;
+    }
+
     this.state = {
       hover: {
         x: 0,
         y: 0,
         hoveredObject: null
       },
+      geojsonData: null,
       points: [],
-      settings: Object.keys(HEXAGON_CONTROLS).reduce(
+      controls: CONTROLS,
+      settings: Object.keys(CONTROLS).reduce(
         (accu, key) => ({
           ...accu,
-          [key]: HEXAGON_CONTROLS[key].value
+          [key]: CONTROLS[key].value
         }),
         {}
       ),
@@ -181,8 +194,7 @@ class App extends Component {
   }
 
   _startPlay = () => {
-    console.log('-XXX->_startPlay, ENTRY!');
-    //this._stopPlay();
+    //console.log('-XXX->_startPlay, ENTRY!');
     this._timerId = setInterval(() => {
       if (this.state.playback.playing) {
         console.log('-XXX->_startPlay, load next file!');
@@ -229,25 +241,53 @@ class App extends Component {
     const filePlayed = DATA_FILES[this.state.playback.curFileIndex];
     const file = DATA_PATH + filePlayed;
     d3.csv(file, d => {
-      const point = ch.lv03.toWgs.point([d.x, d.y]);
-      //console.log('-XXX->row=', d, ', point=', point);
-      return { 
-        position: point, counts: Number(d.score), 
-      }; 
+      if (SHOW_GEOJSON_HEATMAP) {
+        const point1 = ch.lv03.toWgs.point([Number(d.x) - HEATMAP_CELL_SIZE/2, Number(d.y) + HEATMAP_CELL_SIZE/2]);
+        const point2 = ch.lv03.toWgs.point([Number(d.x) + HEATMAP_CELL_SIZE/2, Number(d.y) + HEATMAP_CELL_SIZE/2]);
+        const point3 = ch.lv03.toWgs.point([Number(d.x) + HEATMAP_CELL_SIZE/2, Number(d.y) - HEATMAP_CELL_SIZE/2]);
+        const point4 = ch.lv03.toWgs.point([Number(d.x) - HEATMAP_CELL_SIZE/2, Number(d.y) - HEATMAP_CELL_SIZE/2]);
+        return { 
+          type: "Feature",
+          geometry: {
+            type: "Polygon",
+            coordinates: [[point1, point2, point3, point4]]
+          },
+          properties: {
+            counts: Number(d.score)
+          }
+        };
+      } else {
+        const point = ch.lv03.toWgs.point([d.x, d.y]);
+        //console.log('-XXX->row=', d, ', point=', point);
+        return { 
+          position: point, counts: Number(d.score), 
+        };
+      }
     })
     .then(data => {
       // data is now whole data set
       // draw chart in here!
-      console.log('-XXX->data=', data);
+      //console.log('-XXX->data=', data);
       const newPlaybackState = {
         ...this.state.playback,
         currentPlayed: filePlayed
       }
-      this.setState({
-        points: data,
-        playback: newPlaybackState
-      });
-      console.log('-XXX->state=', this.state);
+      if (SHOW_GEOJSON_HEATMAP) {
+        const featureCollection = {
+          type: 'FeatureCollection', 
+          features: data
+        };
+        this.setState({
+          geojsonData: featureCollection,
+          playback: newPlaybackState
+        });
+      } else {
+        this.setState({
+          points: data,
+          playback: newPlaybackState
+        });
+      }
+      //console.log('-XXX->state=', this.state);
     })
     .catch(error => {
       // handle error
@@ -267,8 +307,12 @@ class App extends Component {
   }
 
   _onHover({ x, y, object }) {
-    const label = object ? 
-      object.counts : null;
+    let label;
+    if (SHOW_GEOJSON_HEATMAP) {
+      label = object ? object.properties.counts : null;
+    } else {
+      label = object ? object.counts : null;
+    }
       
     this.setState({ hover: { x, y, hoveredObject: object, label } });
   }
@@ -375,7 +419,7 @@ class App extends Component {
   _onPlayBtnClicked = () => {
     //toggle play/pause
     const playing = this.state.playback.playing;
-    console.log('-XXX->_onPlayBtnClicked, currently playing=', playing);
+    //console.log('-XXX->_onPlayBtnClicked, currently playing=', playing);
     const newPlaybackState = {
       ...this.state.playback,
       playing: !playing
@@ -386,20 +430,19 @@ class App extends Component {
     }
   }
 
+  _renderLayers = (data, settings) => {
+    const layers = renderLayers({
+      data: data,
+      onHover: hover => this._onHover(hover),
+      settings
+    });
+    //console.log('-XXX->renderLayes, ', layers);
+    return layers;
+  }
+
   _renderTooltip = () => {
     const {hover} = this.state;
-    /*
-    {hover.hoveredObject && (
-          <div
-            style={{
-              ...tooltipStyle,
-              transform: `translate(${hover.x}px, ${hover.y}px)`
-            }}
-          >
-            <div>{hover.label}</div>
-          </div>
-        )}
-    */
+
     return (
       hover.hoveredObject && (
         <div className="tooltip" style={{top: hover.y, left: hover.x}}>
@@ -415,11 +458,14 @@ class App extends Component {
   }
 
   render() {
-    const data = this.state.points;
-    if (!data.length) {
-      return null;
+    let data;
+    if (SHOW_GEOJSON_HEATMAP) {
+      data = this.state.geojsonData;
+    } else {
+      data = this.state.points;
     }
-    const { hover, settings, gl, playback } = this.state;
+
+    const { settings, gl, playback } = this.state;
     //console.log('-XXX>settings, ', settings);
     return (
       <div>
@@ -430,7 +476,7 @@ class App extends Component {
         {showLayerControls &&
         <LayerControls
           settings={settings}
-          propTypes={HEXAGON_CONTROLS}
+          propTypes={this.state.controls}
           onChange={settings => this._updateLayerSettings(settings)}
         />
         }
@@ -443,11 +489,7 @@ class App extends Component {
         }
         <DeckGL
           onWebGLInitialized={this._onWebGLInitialized}
-          layers={renderLayers({
-            data: this.state.points,
-            onHover: hover => this._onHover(hover),
-            settings
-          })}
+          layers={this._renderLayers(data, settings)}
           initialViewState={INITIAL_VIEW_STATE}
           controller
           debug
